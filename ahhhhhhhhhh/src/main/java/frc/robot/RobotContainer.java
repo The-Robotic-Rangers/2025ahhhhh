@@ -206,13 +206,12 @@ public class RobotContainer {
  /** The container for the robot. Contains subsystems, IO devices, and commands. */
  public RobotContainer() {
 
-	  /*//Register Named Commands
-	   NamedCommands.registerCommand("indicator".new IndicatorScrollRainbow());
-       NamedCommands.registerCommand("Eject Coral", new ejectCoralCommand());
-       NamedCommands.registerCommand("Intake Algae", intakeAlgaeCommand());
-       NamedCommands.registerCommand("Lift to L2", new l2CommandGroup());
-	   NamedCommands.registerCommand("Processor", new processorCommandGroup());
-		*/
+	  //Register Named Commands
+       //NamedCommands.registerCommand("Eject Coral", new ejectCoralCommand(), intake);
+       //NamedCommands.registerCommand("Intake Algae", intakeAlgaeCommand(), intake);
+       //NamedCommands.registerCommand("Lift to L2", new l2CommandGroup(), intake, elevator);
+	   //NamedCommands.registerCommand("Processor", new processorCommandGroup(), elevator);
+		
 
 		// choosers (for auton)
 
