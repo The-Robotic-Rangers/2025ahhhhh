@@ -30,6 +30,8 @@ import edu.wpi.first.wpilibj2.command.StartEndCommand;
 //import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import com.pathplanner.lib.auto.AutoBuilder;
+//import com.pathplanner.lib.auto.NamedCommands;
+//import frc.robot.commands.indicator.IndicatorScrollRainbow;
 
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -40,7 +42,6 @@ import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.sensors.*;
 /*import frc.robot.interfaces.IElevator;*/
-
 import frc.robot.subsystems.SwerveDrivetrain;
 //import frc.robot.subsystems.Wrist;
 //import frc.robot.subsystems.vision.*;
@@ -84,11 +85,11 @@ public class RobotContainer {
   private final double L4_HEIGHT = 52.5;
   private final double TOP_ALGAE_HEIGHT = 40;
 
-  private final double PROCESSOR_ANGLE = -.20;
+  private final double PROCESSOR_ANGLE = 0;
   private final double SOURCE_ANGLE = 0.15;
   private final double L1_ANGLE = 0.3;
   private final double L2_ANGLE = 0.225;
-  private final double L3_ANGLE = -0.2;//0.225;
+  private final double L3_ANGLE = -1.7;//0.225;
   private final double L4_ANGLE = 0.26;
   private final double TOP_ALGAE_ANGLE = 0;
 
@@ -175,6 +176,7 @@ public class RobotContainer {
 	private final ICamera object_detection_camera = new ObjectDetectionCamera();
 	private final ICamera apriltag_camera = new AprilTagCamera();
 	private final Indicator indicator = new Indicator(apriltag_camera, object_detection_camera);
+	//private final VisionSubsystem vision = new VisionSubsystem ();
 	//private final NoteSensor noteSensor = new NoteSensor(Ports.Digital.NOTE_SENSOR);
 	//private final NoteSensor noteSensorTwo = new NoteSensor(Ports.Digital.NOTE_SENSOR_TWO);
 
@@ -199,15 +201,22 @@ public class RobotContainer {
 	CommandXboxController copilotGamepad = new CommandXboxController(Ports.USB.COPILOT_GAMEPAD);
 
 	
+
+	
  /** The container for the robot. Contains subsystems, IO devices, and commands. */
  public RobotContainer() {
 
-
-
+	  /*//Register Named Commands
+	   NamedCommands.registerCommand("indicator".new IndicatorScrollRainbow());
+       NamedCommands.registerCommand("Eject Coral", new ejectCoralCommand());
+       NamedCommands.registerCommand("Intake Algae", intakeAlgaeCommand());
+       NamedCommands.registerCommand("Lift to L2", new l2CommandGroup());
+	   NamedCommands.registerCommand("Processor", new processorCommandGroup());
+		*/
 
 		// choosers (for auton)
 
-		autoChooser = AutoBuilder.buildAutoChooser("SPB1 - One Coral and Leave SZ");
+		autoChooser = AutoBuilder.buildAutoChooser("Auto Path 1");
 		SmartDashboard.putData("Auto Chooser", autoChooser);
 		
 		/*autonChooser.setDefaultOption("Do Nothing", AUTON_DO_NOTHING);
@@ -283,6 +292,7 @@ public class RobotContainer {
 					-MathUtil.applyDeadband(joyMain.getZ(), JOYSTICK_AXIS_THRESHOLD),
 					true, true),
 				drivetrain));
+
 		
 		//roller.setDefaultCommand(new RollerStopForever(roller)); // we stop by default
 
@@ -324,23 +334,23 @@ public class RobotContainer {
 		//joyMain.button(1)
 			//.whileTrue(new DrivetrainDriveUsingAprilTagCamera(drivetrain, apriltag_camera, getMainJoystick()));
 
-		joyMain.button(2)
+		joyMain.button(9)
 			.whileTrue(new DrivetrainSetXFormation(drivetrain));	
 			//.whileTrue(new DrivetrainDriveUsingObjectDetectionCamera(drivetrain, object_detection_camera, getMainJoystick()));
 			
-		//joyMain.button(3)
-			//.onTrue(new MoveInLShapeInReverse(drivetrain, this, 3));
+		joyMain.button(10)
+			.onTrue(new MoveInLShapeInReverse(drivetrain, this, 3));
 			
-		//joyMain.button(4)
-			//.onTrue(new MoveInGammaShape(drivetrain, this, 3));
+		joyMain.button(11)
+			.onTrue(new MoveInGammaShape(drivetrain, this, 3));
 
 		//joyMain.button(5)
 			//.onTrue(new MoveForward(drivetrain, this, 3));
 			//.onTrue(new DrivetrainTurnAngleUsingPidController(drivetrain, -90));
 			//.onTrue(new MoveInUShapeInReverse(drivetrain, this, 1));
 
-		joyMain.button(6)
-			.onTrue(new MoveInReverse(drivetrain, this, 3));
+		//joyMain.button(6)
+			//.onTrue(new MoveInReverse(drivetrain, this, 3));
 			//.onTrue(new DrivetrainTurnAngleUsingPidController(drivetrain, 90));
 			//.onTrue(new DrivetrainTurnUsingCamera(drivetrain, object_detection_camera));
 			//.whileTrue(new DrivetrainSetXFormation(drivetrain));
@@ -373,9 +383,9 @@ public class RobotContainer {
 		new StartEndCommand(
 		() -> climber.setMotorVoltage(-0.75), () -> climber.stopMotor(), climber);
 
-		joyMain.button(7).whileTrue(climbUpCommand);
+		joyMain.button(1).whileTrue(climbUpCommand);
 		joyMain.button(8).whileTrue(climbHoldCommand);
-		joyMain.button(9).whileTrue(climbDownCommand);
+		joyMain.button(2).whileTrue(climbDownCommand);
 
 	// Eject algae
     	Command ejectAlgaeCommand =
@@ -392,15 +402,17 @@ public class RobotContainer {
    		Command intakeCoralCommand =
         new StartEndCommand(
         () -> intake.setCoralIntakeVoltage(-6), () -> intake.setCoralIntakeVoltage(0), intake);
-    	joyMain.button(5).whileTrue(intakeCoralCommand);
-
-				
-	// copilot (gamepad)//
+    	joyMain.button(6).whileTrue(intakeCoralCommand);
 
 	Command ejectCoralCommand =
     new StartEndCommand(
      () -> intake.setCoralIntakeVoltage(6), () -> intake.setCoralIntakeVoltage(0), intake);
-	copilotGamepad.leftBumper().whileTrue(ejectCoralCommand);
+	joyMain.button(5).whileTrue(ejectCoralCommand);
+
+	Command ejectCoralCommand2 =
+    new StartEndCommand(
+     () -> intake.setCoralIntakeVoltage(6), () -> intake.setCoralIntakeVoltage(0), intake);
+	 copilotGamepad.leftBumper().whileTrue(ejectCoralCommand2);
 
     // Processor state
     Command liftToProcessorCommand =
@@ -462,13 +474,12 @@ public class RobotContainer {
 		copilotGamepad.povUp().onTrue(topAlgaeCommandGroup);
 
     // Manual lift
-    Command manualLift =
-        new RunCommand(() -> elevator.setVoltage(-copilotGamepad.getLeftY() * 0.5), elevator);
-    // Command manualWrist =
-    //     new RunCommand(() -> intake.setWristVoltage(operatorController.getRightY() * 0.25),
-    // intake);
-    // ParallelCommandGroup manualCommandGroup = new ParallelCommandGroup(manualLift, manualWrist);
-    copilotGamepad.start().whileTrue(manualLift);
+   // Command manualLift =
+      //  new RunCommand(() -> elevator.setVoltage(-copilotGamepad.getLeftY() * 0.5), elevator);
+     //Command manualWrist =
+        // new RunCommand(() -> intake.setWristVoltage(joyMain(12)),intake);
+     //ParallelCommandGroup manualCommandGroup = new ParallelCommandGroup(manualLift, manualWrist);
+    //copilotGamepad.rightBumper().whileTrue(manualLift);
 	}
 
 
@@ -797,54 +808,6 @@ public class RobotContainer {
 	{
 		return apriltag_camera;
 	}
-
-	/*public NoteSensor getNoteSensor()
-	{
-		return noteSensor;
-	}
-
-	public NoteSensor getNoteSensorTwo()
-	{
-		return noteSensorTwo;
-	}
-		*/
-
-	//public CoralIntake CoralIntake()
-		//{
-			//return m_coralintake;
-		//}
-	 /* 
-
-	public Elevator getElevator()
-	{
-		return elevator;
-	}
-
-	/*public Drawer getDrawer()
-	{
-		return drawer;
-	}
-
-	public Neck getNeck()
-	{
-		return neck;
-	}
-
-	public Roller getRoller()
-	{
-		return roller;
-	}
-
-	/*public Mouth getMouth()
-	{
-		return mouth;
-	}
-
-	public Shooter getShooter()
-	{
-		return shooter;
-	}
-	*/
 
 	public Joystick getMainJoystick()
 	{

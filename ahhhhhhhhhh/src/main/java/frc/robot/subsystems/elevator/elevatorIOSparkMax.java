@@ -48,10 +48,10 @@ public class elevatorIOSparkMax implements elevatorIO {
 
       // Configure basic settings of the elevator motor
   leadMotorConfig
-  //.inverted(false)
   .idleMode(IdleMode.kBrake)
   .smartCurrentLimit(50)
-  .voltageCompensation(12);
+  .inverted(false)
+  .voltageCompensation(12)
 
 
   
@@ -59,7 +59,7 @@ public class elevatorIOSparkMax implements elevatorIO {
   * Configure the closed loop controller. We want to make sure we set the
   * feedback sensor as the primary encoder.
   */
-   leadMotorConfig
+   //leadMotorConfig
     .closedLoop
     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
     // Set PID values for position control
@@ -80,21 +80,40 @@ public class elevatorIOSparkMax implements elevatorIO {
     followerMotorConfig
     .idleMode(IdleMode.kBrake)
     .smartCurrentLimit(50)
-    .voltageCompensation(12)
-     .inverted(true)
-    .follow(ElevatorConstants.LeftelevatorMotorCanId);
+    //.voltageCompensation(12)
+    //.inverted(true)
+    .follow(ElevatorConstants.LeftelevatorMotorCanId, true);
+    //.inverted(true);
+    
+
+    /*followerMotorConfig
+    .closedLoop
+    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+    // Set PID values for position control
+    .p(.027)
+    .i(0)
+    .d(0)
+    .velocityFF(1.0 / 117.6)
+    .outputRange(-1, 1)
+    .maxMotion
+    // Set MAXMotion parameters for position control
+    .maxVelocity(4200)
+    .maxAcceleration(6000)
+    .allowedClosedLoopError(0.5);*/
     
     followerMotor.configure(followerMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
+
     // Initialize the encoder for main
     encoder = leadMotor.getEncoder();
+    //encoder = followerMotor.getEncoder();
   }
 
    @Override
   public void set(double voltage) {
     // Set the power to the main motor
     leadMotor.set(voltage);
-    //followerMotor.set(-voltage);
+    //followerMotor.set(voltage);
   }
 
   @Override

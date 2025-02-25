@@ -31,11 +31,53 @@ import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.SwerveModuleConstants;
 import frc.utils.SwerveUtils;
 import frc.robot.Ports;
+import frc.robot.sensors.LimelightHelpers;
 
 /**
  * The {@code SwerveDrivetrain} class contains fields and methods pertaining to the function of the drivetrain.
  */
 public class SwerveDrivetrain extends SubsystemBase {
+	public static final double kMaxSpeed = 3.0; // 3 meters per second
+	public static final double kMaxAngularSpeed= Math.PI;
+	
+	// simple proportional turning control with Limelight.
+  // "proportional control" is a control algorithm in which the output is proportional to the error.
+  // in this case, we are going to return an angular velocity that is proportional to the 
+  // "tx" value from the Limelight.
+  double limelight_aim_proportional()
+  {    
+    // kP (constant of proportionality)
+    // this is a hand-tuned number that determines the aggressiveness of our proportional control loop
+    // if it is too high, the robot will oscillate.
+    // if it is too low, the robot will never reach its target
+    // if the robot never turns in the correct direction, kP should be inverted.
+    double kP = .035;
+
+    // tx ranges from (-hfov/2) to (hfov/2) in degrees. If your target is on the rightmost edge of 
+    // your limelight 3 feed, tx should return roughly 31 degrees.
+    double targetingAngularVelocity = LimelightHelpers.getTX("limelight") * kP;
+
+    // convert to radians per second for our drive method
+    targetingAngularVelocity *= SwerveDrivetrain.kMaxAngularSpeed;
+
+    //invert since tx is positive when the target is to the right of the crosshair
+    targetingAngularVelocity *= -1.0;
+
+    return targetingAngularVelocity;
+  }
+
+  // simple proportional ranging control with Limelight's "ty" value
+  // this works best if your Limelight's mount height and target mount height are different.
+  // if your limelight and target are mounted at the same or similar heights, use "ta" (area) for target ranging rather than "ty"
+  double limelight_range_proportional()
+  {    
+    double kP = .1;
+    double targetingForwardSpeed = frc.robot.sensors.LimelightHelpers.getTY("limelight") * kP;
+    targetingForwardSpeed *= SwerveDrivetrain.kMaxSpeed;
+    targetingForwardSpeed *= -1.0;
+    return targetingForwardSpeed;
+  }
+
 
 	// convention: screw head pointing left/port side
 
@@ -44,7 +86,7 @@ public class SwerveDrivetrain extends SubsystemBase {
 	public static final double FRONT_LEFT_VIRTUAL_OFFSET_RADIANS = 1.92; // adjust as needed so that virtual (turn) position of wheel is zero when straight
 	public static final double FRONT_RIGHT_VIRTUAL_OFFSET_RADIANS = 1.35; // adjust as needed so that virtual (turn) position of wheel is zero when straight
 	public static final double REAR_LEFT_VIRTUAL_OFFSET_RADIANS = -1.06; // adjust as needed so that virtual (turn) position of wheel is zero when straight
-	public static final double REAR_RIGHT_VIRTUAL_OFFSET_RADIANS = 2.52; // adjust as needed so that virtual (turn) position of wheel is zero when straight
+	public static final double REAR_RIGHT_VIRTUAL_OFFSET_RADIANS = 2.62; // adjust as needed so that virtual (turn) position of wheel is zero when straight
 
 	public static final int GYRO_ORIENTATION = -1; // might be able to merge with kGyroReversed
 
@@ -234,8 +276,8 @@ public class SwerveDrivetrain extends SubsystemBase {
 	 *                      field.
 	 * @param rateLimit     Whether to enable rate limiting for smoother control.
 	 */
-	public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
-		
+	public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) 
+	{
 		double xSpeedCommanded;
 		double ySpeedCommanded;
 
@@ -315,6 +357,12 @@ public class SwerveDrivetrain extends SubsystemBase {
 	public void driveRobotRelative(ChassisSpeeds speeds){
 		this.drive(speeds.vxMetersPerSecond,speeds.vyMetersPerSecond,speeds.omegaRadiansPerSecond,false,true);
 	}
+	
+	
+
+
+
+	
 
 	/**
 	 * Sets the wheels into an X formation to prevent movement.
