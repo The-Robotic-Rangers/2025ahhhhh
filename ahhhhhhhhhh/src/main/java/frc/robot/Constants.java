@@ -185,10 +185,54 @@ public final class Constants {
 	  }
 	}
 
-	  public static final class WristConstants {
+public static final class WristConstants {
 		public static final int Wrist_MotorCanId = 14;
-		
-		
+
+		public static final double PROCESSOR_ANGLE = 0;
+		public static final double SOURCE_ANGLE = -1.7;//.15
+		public static final double L1_ANGLE = -5;
+		public static final double L2_ANGLE = -5;
+		public static final double L3_ANGLE = -5;//0.225;
+		public static final double L4_ANGLE = 0;
+		public static final double TOP_ALGAE_ANGLE = 0;
 	  }
+
+      public static final class SetPoints{
+		public final double PROCESSOR_HEIGHT = 0;
+		public final double SOURCE_HEIGHT = 11.5;
+		public final static double L1_HEIGHT = 3;
+		public final double L2_HEIGHT = 5.5;
+		public final double L3_HEIGHT = 25;
+		public final double L4_HEIGHT = 50;
+		public final double TOP_ALGAE_HEIGHT = 40;
+	  }
+
+// Auto constants
+public static final double X_REEF_ALIGNMENT_P = .5;//3.3
+public static final double Y_REEF_ALIGNMENT_P = .5;//3.3
+
+public static final double ROT_REEF_ALIGNMENT_P = .005;//.058
+
+public static final double ROT_SETPOINT_REEF_ALIGNMENT = 1.9;  // Rotation RY
+public static final double ROT_TOLERANCE_REEF_ALIGNMENT = .5;
+public static final double X_SETPOINT_REEF_ALIGNMENT = -.12;//tz where - values increase as robot moves away from tag
+public static final double X_TOLERANCE_REEF_ALIGNMENT = .05;//.02
+public static final double Y_SETPOINT_REEF_ALIGNMENT_RIGHT = .28; //tx value where it moves robot horizontally relative to tag (+ to right and - to left as we are looking at it in front of us)
+public static final double Y_SETPOINT_REEF_ALIGNMENT_LEFT = -.04; //tx value where it moves robot horizontally relative to tag (+ to right and - to left as we are looking at it in front of us)
+public static final double Y_TOLERANCE_REEF_ALIGNMENT = .05;//.02
+
+public static final double DONT_SEE_TAG_WAIT_TIME = 1;//1
+public static final double POSE_VALIDATION_TIME = 0.1
+
+;//.5
+
+public static final double MAX_ROT_VELOCITY = 1.0; // 3.0//Allow faster rotational speed
+public static final double MAX_ROT_ACCELERATION = 1.0; //2.0// Allow quicker acceleration
+
+public static class LimelightConstants {
+	public static final double mountAngleDegrees = 5; // grab later
+	public static final double lensHeightInches = 12.5; // grab later
+	public static final double goalHeightInches = 13.125; // grab later
+}
 
 }

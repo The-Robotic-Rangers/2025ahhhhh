@@ -7,15 +7,33 @@ package frc.robot;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.TimedRobot;
+//import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.sensors.Limelight;
 
+//import java.lang.reflect.Field;
+//import java.util.List;
 import java.util.Optional;
-
 import com.pathplanner.lib.commands.FollowPathCommand;
-
+import edu.wpi.first.cameraserver.CameraServer;
+//import edu.wpi.first.math.geometry.Pose2d;
+//import edu.wpi.first.math.geometry.Rotation2d;
+//import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.trajectory.Trajectory;
+//import edu.wpi.first.math.trajectory.TrajectoryConfig;
+//import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+//import edu.wpi.first.math.util.Units;
+//import edu.wpi.first.cscore.CvSink;
+//import edu.wpi.first.cscore.CvSource;
+//import edu.wpi.first.cscore.UsbCamera;
+//import edu.wpi.first.cscore.MjpegServer;
+//import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.net.PortForwarder;
+//import edu.wpi.first.networktables.NetworkTable;
+//import edu.wpi.first.networktables.NetworkTableEntry;
+//import edu.wpi.first.networktables.NetworkTableInstance;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -25,31 +43,39 @@ import edu.wpi.first.net.PortForwarder;
  */
 public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
+	Command indicatorBreatheRainbow; // command to run while starting up and when disabled
 
 	private RobotContainer m_robotContainer;
+	
+		Trajectory m_trajectory;
+		
 
-	/**
-	 * This function is run when the robot is first started up and should be used for any
-	 * initialization code.
-	 */
-	@Override
-	public void robotInit() {
-		// Port forwarders for LimeLight
-		// Do not place these function calls in any periodic functions
-		PortForwarder.add(5800, "limelight.local", 5800);
-		PortForwarder.add(5801, "limelight.local", 5801);
-		PortForwarder.add(5802, "limelight.local", 5802);
-		PortForwarder.add(5803, "limelight.local", 5803);
-		PortForwarder.add(5804, "limelight.local", 5804);
-		PortForwarder.add(5805, "limelight.local", 5805);
-
-		// Instantiate our RobotContainer.  This will perform all our button bindings, and put our
-		// autonomous chooser on the dashboard.
-		m_robotContainer = new RobotContainer();
-
-		SmartDashboard.putData("Swerve Odometry", m_robotContainer.getField());		
-
-		FollowPathCommand.warmupCommand().schedule(); 
+		/**
+		 * This function is run when the robot is first started up and should be used for any
+		 * initialization code.
+		 */
+		@Override
+		public void robotInit() {
+			CameraServer.startAutomaticCapture();
+			
+	
+			// Port forwarders for LimeLight
+			// Do not place these function calls in any periodic functions
+			PortForwarder.add(5800, "limelight.local", 5800);
+			PortForwarder.add(5801, "limelight.local", 5801);
+			PortForwarder.add(5802, "limelight.local", 5802);
+			PortForwarder.add(5803, "limelight.local", 5803);
+			PortForwarder.add(5804, "limelight.local", 5804);
+			PortForwarder.add(5805, "limelight.local", 5805);
+	
+			// Instantiate our RobotContainer.  This will perform all our button bindings, and put our
+			// autonomous chooser on the dashboard.
+			m_robotContainer = new RobotContainer();
+	
+			//SmartDashboard.putData("Swerve Odometry", m_robotContainer.getField());		
+	
+			FollowPathCommand.warmupCommand().schedule(); 
+			
 	}
 
 	/**
@@ -61,11 +87,16 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void robotPeriodic() {
+
+		
+		updateToSmartDash();
 		// Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
 		// commands, running already-scheduled commands, removing finished or interrupted commands,
 		// and running subsystem periodic() methods.  This must be called from the robot's periodic
 		// block in order for anything in the Command-based framework to work.
 		CommandScheduler.getInstance().run();
+		
+		
 	}
 
 	/** This function is called once each time the robot enters Disabled mode. */
@@ -75,22 +106,26 @@ public class Robot extends TimedRobot {
 	@Override
 	public void disabledPeriodic() {
 
-		// m_robotContainer.getCamera().acquireTargets(false);
-
 		updateToSmartDash();
-	}
+
+		super.disabledInit(); // Call the superclass method
+        if (indicatorBreatheRainbow != null) {
+        indicatorBreatheRainbow.schedule(); // Schedule the breathing rainbow command
+        }
+        //System.out.println("Scheduled breathing rainbow effect at end of match.
+	     }
 
 	/** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
 	@Override
 	public void autonomousInit() {
 		m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
-		/*
-		 * String autoSelected = SmartDashboard.getString("Auto Selector",
-		 * "Default"); switch(autoSelected) { case "My Auto": autonomousCommand
-		 * = new MyAutoCommand(); break; case "Default Auto": default:
-		 * autonomousCommand = new ExampleCommand(); break; }
-		 */
+		
+		 /*  String autoSelected = SmartDashboard.getString("Auto Selector",
+		  "Default"); switch(autoSelected) { case "My Auto": autonomousCommand
+		  = new MyAutoCommand(); break; case "Default Auto": default:
+		 autonomousCommand = new ExampleCommand(); break; }*/
+		 
 
 		// schedule the autonomous command (example)
 		if (m_autonomousCommand != null) {
@@ -120,13 +155,16 @@ public class Robot extends TimedRobot {
 	@Override
 	public void teleopPeriodic() {
 
-	//	m_robotContainer.getCamera().acquireTargets(false);
+			//m_robotContainer.getCamera().acquireTargets(false);
+			//m_field.setRobotPose(m_odometry.getPoseMeters());
 
 		updateToSmartDash();
 	}
 
 	public void updateToSmartDash()
 	{
+        //SmartDashboard.putData(m_field);
+
 		SmartDashboard.putNumber("FrontLeftDrivingEncoderPosition", m_robotContainer.getDrivetrain().getFrontLeftModule().getDrivingEncoder().getPosition());
 		SmartDashboard.putNumber("FrontLeftTurningEncoderPosition", m_robotContainer.getDrivetrain().getFrontLeftModule().getTurningEncoder().getPosition());
 		
@@ -161,9 +199,8 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putNumber("IMU_Pitch", m_robotContainer.getDrivetrain().getImu().getPitch());
 		SmartDashboard.putNumber("IMU_Roll", m_robotContainer.getDrivetrain().getImu().getRoll());
 
-		m_robotContainer.getField().setRobotPose(m_robotContainer.getDrivetrain().getPose());
-		SmartDashboard.putNumber(   "Heading",             m_robotContainer.getDrivetrain().getHeading());
-
+		//m_robotContainer.getField().setRobotPose(m_robotContainer.getDrivetrain().getPose());
+		SmartDashboard.putNumber("Heading",m_robotContainer.getDrivetrain().getHeading());
 
 		SmartDashboard.putNumber("AccelZ", m_robotContainer.getAccelerometer().getAccelZ());
 		SmartDashboard.putNumber("FilteredAccelZ", m_robotContainer.getAccelerometer().getFilteredAccelZ());
@@ -176,10 +213,14 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putNumber("AccurateRoll", m_robotContainer.getAccelerometer().getAccurateRoll());
 		SmartDashboard.putNumber("FilteredAccurateRoll", m_robotContainer.getAccelerometer().getFilteredAccurateRoll());
 
-		//SmartDashboard.putNumber("Elevator Position", m_robotContainer.getElevator.getencoderPosition());
+		SmartDashboard.putNumber("Elevator Position", m_robotContainer.getElevator().getPosition());
+		SmartDashboard.putNumber("Elevator Position Inches", m_robotContainer.getElevator().getVelocity());
 
-	
-
+		m_robotContainer.getLimelight();
+		SmartDashboard.putNumber("distanceToTarget", Limelight.getDistanceToTarget(10, 6, 8.75));
+		m_robotContainer.getLimelight();
+		SmartDashboard.putNumber("angleToTarget", Limelight.getangleToGoalDegrees());
+		
 		/*SmartDashboard.putNumber("Distance to Target", m_robotContainer.getCamera().getDistanceToCompositeTargetUsingVerticalFov());
 		SmartDashboard.putNumber("Angle to Target", m_robotContainer.getCamera().getAngleToTurnToCompositeTarget());
 		SmartDashboard.putNumber("Distance to Target Using Horizontal FOV", m_robotContainer.getCamera().getDistanceToCompositeTargetUsingHorizontalFov());
@@ -192,7 +233,8 @@ public class Robot extends TimedRobot {
 
 		//SmartDashboard.putNumber("Distance to AprilTag", m_robotContainer.getAprilTagCamera().getDistanceToTarget());
 		//SmartDashboard.putNumber("Angle to AprilTag", m_robotContainer.getAprilTagCamera().getAngleToTurnToTarget());
-
+		
+		SmartDashboard.putBoolean("Algae Sensor isEnergized", m_robotContainer.getIntakeSensor().isEnergized());
 		/*SmartDashboard.putBoolean("NoteSensor isEnergized", m_robotContainer.getNoteSensor().isEnergized());
 		SmartDashboard.putBoolean("NoteSensorTwo isEnergized", m_robotContainer.getNoteSensorTwo().isEnergized());
 
@@ -261,6 +303,7 @@ public class Robot extends TimedRobot {
 		Optional<Alliance> alliance = DriverStation.getAlliance();
 		Alliance allianceColor = alliance.isPresent() ? alliance.get() : Alliance.Blue;
 		SmartDashboard.putString("Alliance color", allianceColor.toString());
+		
 	}
 
 	@Override

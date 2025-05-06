@@ -3,6 +3,7 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot.subsystems;
+
 //imports for Pathplanner follow commmands/stuff below
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
@@ -22,16 +23,24 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
+import frc.robot.LimelightHelpers;
+//import edu.wpi.first.math.estimator.PoseEstimator;
+//import edu.wpi.first.math.numbers.N3;
+//import edu.wpi.first.math.numbers.N2;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.math.VecBuilder;
+//import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+//import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
-
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.SwerveModuleConstants;
 import frc.utils.SwerveUtils;
 import frc.robot.Ports;
-import frc.robot.sensors.LimelightHelpers;
+//import frc.robot.RobotContainer;
+
+//import frc.robot.sensors.LimelightHelpers;
 
 /**
  * The {@code SwerveDrivetrain} class contains fields and methods pertaining to the function of the drivetrain.
@@ -39,54 +48,13 @@ import frc.robot.sensors.LimelightHelpers;
 public class SwerveDrivetrain extends SubsystemBase {
 	public static final double kMaxSpeed = 3.0; // 3 meters per second
 	public static final double kMaxAngularSpeed= Math.PI;
-	
-	// simple proportional turning control with Limelight.
-  // "proportional control" is a control algorithm in which the output is proportional to the error.
-  // in this case, we are going to return an angular velocity that is proportional to the 
-  // "tx" value from the Limelight.
-  double limelight_aim_proportional()
-  {    
-    // kP (constant of proportionality)
-    // this is a hand-tuned number that determines the aggressiveness of our proportional control loop
-    // if it is too high, the robot will oscillate.
-    // if it is too low, the robot will never reach its target
-    // if the robot never turns in the correct direction, kP should be inverted.
-    double kP = .035;
-
-    // tx ranges from (-hfov/2) to (hfov/2) in degrees. If your target is on the rightmost edge of 
-    // your limelight 3 feed, tx should return roughly 31 degrees.
-    double targetingAngularVelocity = LimelightHelpers.getTX("limelight") * kP;
-
-    // convert to radians per second for our drive method
-    targetingAngularVelocity *= SwerveDrivetrain.kMaxAngularSpeed;
-
-    //invert since tx is positive when the target is to the right of the crosshair
-    targetingAngularVelocity *= -1.0;
-
-    return targetingAngularVelocity;
-  }
-
-  // simple proportional ranging control with Limelight's "ty" value
-  // this works best if your Limelight's mount height and target mount height are different.
-  // if your limelight and target are mounted at the same or similar heights, use "ta" (area) for target ranging rather than "ty"
-  double limelight_range_proportional()
-  {    
-    double kP = .1;
-    double targetingForwardSpeed = frc.robot.sensors.LimelightHelpers.getTY("limelight") * kP;
-    targetingForwardSpeed *= SwerveDrivetrain.kMaxSpeed;
-    targetingForwardSpeed *= -1.0;
-    return targetingForwardSpeed;
-  }
-
-
-	// convention: screw head pointing left/port side
 
 	// calibration: manually move wheels so it's facing straight then record the number below, deploy code then enable :)
 
-	public static final double FRONT_LEFT_VIRTUAL_OFFSET_RADIANS = 1.92; // adjust as needed so that virtual (turn) position of wheel is zero when straight
-	public static final double FRONT_RIGHT_VIRTUAL_OFFSET_RADIANS = 1.35; // adjust as needed so that virtual (turn) position of wheel is zero when straight
-	public static final double REAR_LEFT_VIRTUAL_OFFSET_RADIANS = -1.06; // adjust as needed so that virtual (turn) position of wheel is zero when straight
-	public static final double REAR_RIGHT_VIRTUAL_OFFSET_RADIANS = 2.62; // adjust as needed so that virtual (turn) position of wheel is zero when straight
+	public static final double FRONT_LEFT_VIRTUAL_OFFSET_RADIANS = 1.92; // 1.92 adjust as needed so that virtual (turn) position of wheel is zero when straight
+	public static final double FRONT_RIGHT_VIRTUAL_OFFSET_RADIANS = 1.38; // 1.38 adjust as needed so that virtual (turn) position of wheel is zero when straight
+	public static final double REAR_LEFT_VIRTUAL_OFFSET_RADIANS = -.95; // -.95 adjust as needed so that virtual (turn) position of wheel is zero when straight
+	public static final double REAR_RIGHT_VIRTUAL_OFFSET_RADIANS = 2.68; // 2.6 adjust as needed so that virtual (turn) position of wheel is zero when straight
 
 	public static final int GYRO_ORIENTATION = -1; // might be able to merge with kGyroReversed
 
@@ -133,6 +101,9 @@ public class SwerveDrivetrain extends SubsystemBase {
 	// The gyro sensor
 	private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI); // usign SPI by default, which is what we want.
 
+	//pose estimator
+	private final SwerveDrivePoseEstimator m_poseEstimator;
+
 	// Slew rate filter variables for controlling lateral acceleration
 	private double m_currentRotation = 0.0;
 	private double m_currentTranslationDir = 0.0;
@@ -142,6 +113,7 @@ public class SwerveDrivetrain extends SubsystemBase {
 	private SlewRateLimiter m_rotLimiter = new SlewRateLimiter(DrivetrainConstants.ROTATIONAL_SLEW_RATE);
 	private double m_prevTime = WPIUtilJNI.now() * 1e-6;
 
+	
 	// Odometry class for tracking robot pose
 	SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
 		DrivetrainConstants.DRIVE_KINEMATICS,
@@ -152,7 +124,6 @@ public class SwerveDrivetrain extends SubsystemBase {
 			m_rearLeft.getPosition(),
 			m_rearRight.getPosition()
 		});
-
 
 	// other variables
 	private boolean isTurning;  // indicates that the drivetrain is turning using the PID controller hereunder
@@ -165,6 +136,19 @@ public class SwerveDrivetrain extends SubsystemBase {
 
 	/** Creates a new Drivetrain. */
 	public SwerveDrivetrain() {
+
+		m_poseEstimator = new SwerveDrivePoseEstimator(DrivetrainConstants.DRIVE_KINEMATICS,//
+			Rotation2d.fromDegrees(GYRO_ORIENTATION * m_gyro.getAngle()), // gyro angle
+			new SwerveModulePosition[] {
+				m_frontLeft.getPosition(),
+				m_frontRight.getPosition(),
+				m_rearLeft.getPosition(),
+				m_rearRight.getPosition()
+			},
+			new Pose2d(), // initial pose, will be reset in the constructor
+			VecBuilder.fill(0.1, 0.1, 0.1), // state std devs
+			VecBuilder.fill(0.5, 0.5, 0.5) // vision std devs
+		);
 		
 		m_frontLeft.calibrateVirtualPosition(FRONT_LEFT_VIRTUAL_OFFSET_RADIANS); // set virtual position for absolute encoder
 		m_frontRight.calibrateVirtualPosition(FRONT_RIGHT_VIRTUAL_OFFSET_RADIANS);
@@ -238,6 +222,12 @@ public class SwerveDrivetrain extends SubsystemBase {
 			});
 
 		calculateTurnAngleUsingPidController();
+
+		//SmartDashboard.putData("Field", field);
+		//field.setRobotPose(m_odometry.getPoseMeters());
+		// Update the Field2d pose
+        //m_robotContainer.getField().setRobotPose (m_odometry.getPoseMeters());
+
 	}
 
 	/**
@@ -358,12 +348,6 @@ public class SwerveDrivetrain extends SubsystemBase {
 		this.drive(speeds.vxMetersPerSecond,speeds.vyMetersPerSecond,speeds.omegaRadiansPerSecond,false,true);
 	}
 	
-	
-
-
-
-	
-
 	/**
 	 * Sets the wheels into an X formation to prevent movement.
 	 */
@@ -451,6 +435,77 @@ public class SwerveDrivetrain extends SubsystemBase {
 		isTurning = false;
 	}
 
+	// Proportional control for Limelight aiming
+	public double limelight_aim_proportional() {
+		double kP = 3;//.035
+		double targetingAngularVelocity = LimelightHelpers.getTX("limelight-fin") * kP;
+		targetingAngularVelocity *= kMaxAngularSpeed;
+		targetingAngularVelocity *= -1.0; // Invert for correct direction
+		return targetingAngularVelocity;
+	  }
+	
+	  // Proportional control for Limelight ranging
+	  public double limelight_range_proportional() {
+		double kP = 3;//.1
+		double targetingForwardSpeed = LimelightHelpers.getTY("limelight-fin") * kP;
+		targetingForwardSpeed *= kMaxSpeed;
+		targetingForwardSpeed *= -1.0; // Invert for correct direction
+		return targetingForwardSpeed;
+	  } 
+
+	  public double getLimelightError() {
+
+        // Example implementation, replace with actual Limelight error calculation
+
+        return 0.0;
+
+    }
+	/*public void updatePoseEstimation() {
+		boolean useMegaTag2 = true; // set to false to use MegaTag1
+		boolean doRejectUpdate = false;
+	
+		if (useMegaTag2 == false) {
+			LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-fin");
+	
+			if (mt1.tagCount == 1 && mt1.rawFiducials.length == 1) {
+				if (mt1.rawFiducials[0].ambiguity > .7) {
+					doRejectUpdate = true;
+				}
+				if (mt1.rawFiducials[0].distToCamera > 3) {
+					doRejectUpdate = true;
+				}
+			}
+			if (mt1.tagCount == 0) {
+				doRejectUpdate = true;
+			}
+	
+			if (!doRejectUpdate) {
+				m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.5, .5, 9999999));
+				m_poseEstimator.addVisionMeasurement(
+					mt1.pose,
+					mt1.timestampSeconds
+				);
+			}
+		} else if (useMegaTag2 == true) {
+			LimelightHelpers.SetRobotOrientation("fin", m_poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+			LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("fin");
+	
+			if (Math.abs(m_gyro.getRate()) > 720) { // if our angular velocity is greater than 720 degrees per second, ignore vision updates
+				doRejectUpdate = true;
+			}
+			if (mt2.tagCount == 0) {
+				doRejectUpdate = true;
+			}
+			if (!doRejectUpdate) {
+				m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.7, .7, 9999999));
+				m_poseEstimator.addVisionMeasurement(
+					mt2.pose,
+					mt2.timestampSeconds
+				);
+			}
+		}
+	}*/
+
 	/** in dash
 	 * Returns the heading of the robot.
 	 *
@@ -465,6 +520,12 @@ public class SwerveDrivetrain extends SubsystemBase {
 	 *
 	 * @return The turn rate of the robot, in degrees per second
 	 */
+
+    public SwerveDrivePoseEstimator getPoseEstimator() {
+        // return the PoseEstimator instance
+        return m_poseEstimator;
+    }
+
 	public double getTurnRate() {
 		return m_gyro.getRate() * (DrivetrainConstants.kGyroReversed ? -1.0 : 1.0);
 	}
@@ -574,7 +635,7 @@ public class SwerveDrivetrain extends SubsystemBase {
 
 		//System.out.println("output: " + output);
 
-		drive(0, 0, output, false, false); // TODO double-check sign
+		drive(0, 0, output, true, false); 
 	}
 
 }

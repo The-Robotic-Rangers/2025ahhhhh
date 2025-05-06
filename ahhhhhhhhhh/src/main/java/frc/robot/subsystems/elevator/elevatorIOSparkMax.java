@@ -10,8 +10,8 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+
 import com.revrobotics.spark.config.SparkMaxConfig;
-//import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.ElevatorConstants;
 //import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
@@ -70,8 +70,8 @@ public class elevatorIOSparkMax implements elevatorIO {
     .outputRange(-1, 1)
     .maxMotion
     // Set MAXMotion parameters for position control
-    .maxVelocity(4200)
-    .maxAcceleration(6000)
+    .maxVelocity(1200)//4200
+    .maxAcceleration(3000)//6000
     .allowedClosedLoopError(0.5);
 
     //apply
@@ -83,46 +83,24 @@ public class elevatorIOSparkMax implements elevatorIO {
     //.voltageCompensation(12)
     //.inverted(true)
     .follow(ElevatorConstants.LeftelevatorMotorCanId, true);
-    //.inverted(true);
-    
 
-    /*followerMotorConfig
-    .closedLoop
-    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-    // Set PID values for position control
-    .p(.027)
-    .i(0)
-    .d(0)
-    .velocityFF(1.0 / 117.6)
-    .outputRange(-1, 1)
-    .maxMotion
-    // Set MAXMotion parameters for position control
-    .maxVelocity(4200)
-    .maxAcceleration(6000)
-    .allowedClosedLoopError(0.5);*/
-    
     followerMotor.configure(followerMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-
+    
     // Initialize the encoder for main
     encoder = leadMotor.getEncoder();
-    //encoder = followerMotor.getEncoder();
   }
 
    @Override
   public void set(double voltage) {
     // Set the power to the main motor
     leadMotor.set(voltage);
-    //followerMotor.set(voltage);
+
   }
 
   @Override
   public double getPosition() {
     // Get the position from the encoder
     return encoder.getPosition();
-    //SmartDashboard.putNumber("Elevator/Actual Position", encoder.getPosition());
-
-
   }
 
   @Override
@@ -146,4 +124,10 @@ public class elevatorIOSparkMax implements elevatorIO {
   public void stop() {
     leadMotor.setVoltage(0);
   }
+
+ // @Override
+  //public void periodic(){
+    //SmartDashboard.putNumber("Elevator Position", getPosition());
+    //SmartDashboard.putNumber("Elevator Velocity", getVelocity()); 
+ // }
 }

@@ -17,11 +17,11 @@ public class IndicatorIndicateUsingCamera extends Command {
 		addRequirements(indicator);
 	}
 
-	// This instant command can run disabled
-	/*@Override
+	//This instant command can run disabled
+	@Override
 	public boolean runsWhenDisabled() {
 		return true;
-	}*/
+	}
 
 	// Called just before this Command runs the first time
 	@Override

@@ -26,6 +26,11 @@ public class Ports {
 			public static final int CHECK_PRESSURE = 0;
 			public static final int NOTE_SENSOR = 1;
 			public static final int NOTE_SENSOR_TWO = 2;
+			public static final int IntakeSensor= 3;
+		}
+
+		public static class TOF {
+			public static final int AlgaeSensor = 42; //Time of Flight Sensor
 		}
 		
 		/**
@@ -174,7 +179,7 @@ public class Ports {
 		public static class USB {
 			public static final int RIGHT_JOYSTICK = 0;
 			public static final int LEFT_JOYSTICK = 1;
-			//public static final int DRIVER_GAMEPAD = 3;
+			public static final int DRIVER_GAMEPAD = 3;
 			public static final int COPILOT_GAMEPAD = 2;
 			public static final int MAIN_JOYSTICK = 4;
 		}

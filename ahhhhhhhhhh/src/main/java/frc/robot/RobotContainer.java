@@ -6,65 +6,77 @@ package frc.robot;
 
 //import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
+
+// PID Controler import that was commented out for testing
+//import edu.wpi.first.math.controller.PIDController;
+//import edu.wpi.first.math.controller.ProfiledPIDController;
+//import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+// end of PID
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
-import edu.wpi.first.wpilibj.Joystick;
+//import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
+//import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 //import edu.wpi.first.wpilibj.XboxController;
 //import edu.wpi.first.wpilibj.XboxController.Button;
 //import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 //import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+//import edu.wpi.first.wpilibj2.command.button.Trigger;
+//import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+//import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 //import edu.wpi.first.wpilibj2.command.Subsystem;
-import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
-import com.pathplanner.lib.auto.AutoBuilder;
+//import com.pathplanner.lib.auto.AutoBuilder;
 //import com.pathplanner.lib.auto.NamedCommands;
 //import frc.robot.commands.indicator.IndicatorScrollRainbow;
-
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import java.util.List;
-
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.sensors.*;
-/*import frc.robot.interfaces.IElevator;*/
 import frc.robot.subsystems.SwerveDrivetrain;
-//import frc.robot.subsystems.Wrist;
-//import frc.robot.subsystems.vision.*;
+import frc.robot.subsystems.Coral;
 import frc.robot.subsystems.climber.*;
-//import frc.robot.subsystems.climber.ClimberIO;
-//import frc.robot.subsystems.climber.ClimberIOSparkMax;
+import frc.robot.commands.Coral.CoralIn;
+import frc.robot.commands.Coral.CoralOut;
+import frc.robot.commands.Groups.processorCommandGroup;
+import frc.robot.commands.Groups.sourceCommandGroup;
+import frc.robot.commands.Groups.l1CommandGroup;
+import frc.robot.commands.Groups.l2CommandGroup;
+import frc.robot.commands.Groups.l3CommandGroup;
+import frc.robot.commands.Groups.l4CommandGroup;
+//import frc.robot.commands.Groups.sourceCommandGroup;
+import frc.robot.commands.Groups.topAlgaeCommandGroup;
 import frc.robot.subsystems.elevator.*;
-////import frc.robot.subsystems.elevator.elevatorIO;
-//import frc.robot.subsystems.elevator.elevatorIOSparkMax;
-import frc.robot.subsystems.intake.*;
-//import frc.robot.subsystems.intake.IntakeIO;
-//import frc.robot.subsystems.intake.IntakeIOSparkMax;
-//import frc.robot.subsystems.vision.AprilTagVision;
-//import frc.robot.subsystems.vision.AprilTagVisionIOPhotonvision;
-//import frc.robot.subsystems.vision.AprilTagVision;
+import frc.robot.commands.Algae.EjectAlgaeCommand;
+//import frc.robot.commands.Algae.IntakeAlgaeCommand;
+import frc.robot.commands.Algae.AlgaeIntakeUntilSensor;
 import frc.robot.commands.drivetrain.*;
 import frc.robot.interfaces.ICamera;
+import frc.robot.subsystems.Algae;
+import frc.robot.subsystems.CoralWrist;
 import frc.robot.subsystems.Indicator;
 import frc.robot.commands.indicator.*;
-//import frc.robot.commands.groups.*;
-//import frc.robot.commands.gamepad.*;
+//import frc.robot.auton.CustomAuton;
 //import frc.robot.auton.*;
 import frc.robot.auton.trajectories.*;
+import frc.robot.auton.common.AutonAlign;
+import frc.robot.auton.common.CoralonL1;
+//import frc.robot.auton.common.CoralonL1;
+import frc.robot.auton.common.CoralonL1fromLeft;
+import frc.robot.auton.common.CoralonL1fromRight;
+import frc.robot.auton.common.MidCoralonL1;
+import frc.robot.auton.common.TrajectoryGenerationTest;
 
 
 /*
@@ -77,21 +89,22 @@ public class RobotContainer {
 
 	// Subsystems
 
-  private final double PROCESSOR_HEIGHT = 0;
-  private final double SOURCE_HEIGHT = 8.75;
+  //public static Subsystem m_coralwrist;
+  /*private final double PROCESSOR_HEIGHT = 0;
+  private final double SOURCE_HEIGHT = 9.3;//was 10.
   private final double L1_HEIGHT = 3;
-  private final double L2_HEIGHT = 5.5;
-  private final double L3_HEIGHT = 21.5;
-  private final double L4_HEIGHT = 52.5;
-  private final double TOP_ALGAE_HEIGHT = 40;
+  private final double L2_HEIGHT = 5.8;
+  private final double L3_HEIGHT = 22.8;//was 25.3
+  private final double L4_HEIGHT = 51.2;
+  private final double TOP_ALGAE_HEIGHT = 40;*/
 
   private final double PROCESSOR_ANGLE = 0;
-  private final double SOURCE_ANGLE = 0.15;
-  private final double L1_ANGLE = 0.3;
-  private final double L2_ANGLE = 0.225;
-  private final double L3_ANGLE = -1.7;//0.225;
-  private final double L4_ANGLE = 0.26;
-  private final double TOP_ALGAE_ANGLE = 0;
+  //private final double SOURCE_ANGLE = -1.7;//.15
+  //private final double L1_ANGLE = -5;
+  //private final double L2_ANGLE = -5;
+  private final double L3_ANGLE = -5;//0.225;
+  //private final double L4_ANGLE = 0;
+  //private final double TOP_ALGAE_ANGLE = 0;
 
 
 	public static final double GAMEPAD_AXIS_THRESHOLD = 0.15;
@@ -105,26 +118,34 @@ public class RobotContainer {
 	public static final int RY = 5;
 
 	Command indicatorTimedScrollRainbow; // command to run while starting up and when disabled
+	Command indicatorBreatheRainbow; // command to run while starting up and when disabled
 
 	// choosers (for auton)
 	
-	/*public static final String AUTON_DO_NOTHING = "Do Nothing";
-	public static final String AUTON_CUSTOM = "My Auto";
+	public static final String AUTON_DO_NOTHING = "Do Nothing";
+	//public static final String AUTON_CUSTOM = "My Auto";
 	public static final String AUTON_SAMPLE_SWERVE = "Sample Swerve";
 	public static final String AUTON_SAMPLE_MOVE_FORWARD = "Sample Move Forward";
 	public static final String AUTON_SAMPLE_MOVE_IN_REVERSE = "Sample Move In Reverse";
 	public static final String AUTON_SAMPLE_MOVE_IN_GAMMA_SHAPE = "Sample Move In Gamma Shape";
 	public static final String AUTON_SAMPLE_MOVE_IN_L_SHAPE_IN_REVERSE = "Sample Move In L Shape In Reverse";
+	public static final String AUTON_ALIGN_TO_REEF_TAG_RELATIVE = "Align to Reef Tag Relative";
+	public static final String AUTON_LL_MID_SCORE_L1 = "LL Mid Score L1";
+	public static final String AUTON_MID_SCORE_L1 = "Moves Forward and Ejects Coral";
+	public static final String AUTON_LEFT_MOVE_TO_REEF = "Left Side Move To Reef";
+	public static final String AUTON_RIGHT_MOVE_TO_REEF = "Right Side Move To Reef";
+	public static final String MOVES_IN_REVERSE_EJECTS_CORAL = "Moves in Reverse and Ejects Coral";
 	public static final String AUTON_TEST_HARDCODED_MOVE_1 = "Test Hardcoded Move 1";
 	public static final String AUTON_TEST_HARDCODED_MOVE_2 = "Test Hardcoded Move 2";
 	public static final String AUTON_TEST_TRAJECTORY_GENERATION = "Test Trajectory Generation";
 	private String autonSelected;
 	private SendableChooser<String> autonChooser = new SendableChooser<>();
+	/*private String startPosition;
 
 	public static final String GAME_PIECE_NONE = "None";
-	public static final String GAME_PIECE_1_NOTE = "1 Note";
-	public static final String GAME_PIECE_2_NOTES = "2 Notes";
-	public static final String GAME_PIECE_3_NOTES = "3 Notes";
+	public static final String GAME_PIECE_1_CORAL = "1 CORAL";
+	//public static final String GAME_PIECE_2_CORALS = "2 CORALS";
+	//public static final String GAME_PIECE_3_CORALS = "3 CORALS";
 	private String gamePieceSelected;
 	private SendableChooser<String> gamePieceChooser = new SendableChooser<>();
 	
@@ -134,10 +155,10 @@ public class RobotContainer {
 	public static final String START_POSITION_4 = "Starting Position 4";
 	public static final String START_POSITION_5 = "Starting Position 5";
 	public static final String START_POSITION_6 = "Starting Position 6";
-	private String startPosition;
+	//private String startPosition;
 	private SendableChooser<String> startPositionChooser = new SendableChooser<>();
 
-	public static final String MAIN_TARGET_SPEAKER = "Speaker";
+	public static final String MAIN_TARGET_SPEAKER = "Reef";
 	public static final String MAIN_TARGET_NOWHERE = "Nowhere";
 	private String mainTarget;
 	private SendableChooser<String> mainTargetChooser = new SendableChooser<>();
@@ -149,7 +170,7 @@ public class RobotContainer {
 	private String cameraOption;
 	private SendableChooser<String> cameraOptionChooser = new SendableChooser<>();
 	
-	public static final String SONAR_OPTION_USE_ALWAYS = "Always";
+	/*public static final String SONAR_OPTION_USE_ALWAYS = "Always";
 	public static final String SONAR_OPTION_USE_RELEASE_ONLY = "Release Only";
 	public static final String SONAR_OPTION_USE_GRASP_ONLY = "Grasp Only";
 	public static final String SONAR_OPTION_USE_NEVER = "Never";
@@ -161,79 +182,79 @@ public class RobotContainer {
 	private String releaseSelected;
 	private SendableChooser<String> releaseChooser = new SendableChooser<>();
 
-	public static final String AUTON_OPTION_JUST_SHOOT_NOTE = "Just Shoot Note";
+	public static final String AUTON_OPTION_JUST_PLACE_CORAL = "Just Place Coral";
 	public static final String AUTON_OPTION_LEAVE_COMMUNITY = "Leave Community";
-	public static final String AUTON_OPTION_PICKUP_NOTE_AT_MIDLINE = "Pickup Note at Midline";
+	public static final String AUTON_OPTION_PICKUP_CORAL_AT_SOURCE = "Pickup Coral At Source";
+	public static final String AUTON_OPTION_PICKUP_NOTE_AT_MIDLINE = "Pickup Coral from Source";
 	public static final String AUTON_OPTION_PICKUP_NOTE_AT_WING = "Pickup Note at Wing";
-	public static final String AUTON_OPTION_FEED_NOTE = "Feed Note";
-	private String autonOption;
-	private SendableChooser<String> autonOptionChooser = new SendableChooser<>();*/
-	private final SendableChooser<Command> autoChooser;
+	public static final String AUTON_OPTION_FEED_NOTE = "Feed Note";*/
+
+	//private String autonOption;
+	SendableChooser<String> autonOptionChooser = new SendableChooser<>();
+	//private final SendableChooser<Command> autoChooser;
 
 	// sensors
+	private final IntakeSensor IntakeSensor = new IntakeSensor(); // for sensing if algae is loaded
+    //private final AlgaeSensor algaesensor = new AlgaeSensor();
 
 	private final HMAccelerometer accelerometer = new HMAccelerometer();
 	private final ICamera object_detection_camera = new ObjectDetectionCamera();
 	private final ICamera apriltag_camera = new AprilTagCamera();
-	private final Indicator indicator = new Indicator(apriltag_camera, object_detection_camera);
-	//private final VisionSubsystem vision = new VisionSubsystem ();
-	//private final NoteSensor noteSensor = new NoteSensor(Ports.Digital.NOTE_SENSOR);
-	//private final NoteSensor noteSensorTwo = new NoteSensor(Ports.Digital.NOTE_SENSOR_TWO);
+	private final Limelight limelight = new Limelight();
+	private final Indicator indicator = new Indicator(63);
 
 	// motorized devices
-
 	private final SwerveDrivetrain drivetrain = new SwerveDrivetrain();
 	private final Climber climber = new Climber(new ClimberIOSparkMax());
-    private final Intake intake = new Intake(new IntakeIOSparkMax());
     private final elevator elevator = new elevator(new elevatorIOSparkMax());
-	//private final Wrist wrist = new Wrist();
+	public static CoralWrist coralwrist = new CoralWrist();
+	public Algae algae = new Algae();
+	public Coral coral = new Coral();
 
+	//misc
 	private final Field2d field = new Field2d(); //  a representation of the field
-
-	//private final Indicator indicator = new Indicator(apriltag_camera, object_detection_camera);
+	
 
 	// The driver's and copilot's joystick(s) and controller(s)
-
 	/*CommandJoystick joyLeft = new CommandJoystick(Ports.USB.LEFT_JOYSTICK);
 	CommandJoystick joyRight = new CommandJoystick(Ports.USB.RIGHT_JOYSTICK);*/
-	CommandJoystick joyMain = new CommandJoystick(Ports.USB.MAIN_JOYSTICK);
-	//CommandXboxController driverGamepad = new CommandXboxController(Ports.USB.DRIVER_GAMEPAD);
+	//CommandJoystick joyMain = new CommandJoystick(Ports.USB.MAIN_JOYSTICK);
+	CommandXboxController driverGamepad = new CommandXboxController(Ports.USB.DRIVER_GAMEPAD);
 	CommandXboxController copilotGamepad = new CommandXboxController(Ports.USB.COPILOT_GAMEPAD);
 
-	
-
-	
  /** The container for the robot. Contains subsystems, IO devices, and commands. */
  public RobotContainer() {
 
+	   // Configure the SmartDashboard to display the Field2d
+	   SmartDashboard.putData("Field", field);
+
 	  //Register Named Commands
-       //NamedCommands.registerCommand("Eject Coral", new ejectCoralCommand(), intake);
-       //NamedCommands.registerCommand("Intake Algae", intakeAlgaeCommand(), intake);
-       //NamedCommands.registerCommand("Lift to L2", new l2CommandGroup(), intake, elevator);
-	   //NamedCommands.registerCommand("Processor", new processorCommandGroup(), elevator);
-		
+       //NamedCommands.registerCommand("Eject Coral", new CoralOut(intake));
+       //NamedCommands.registerCommand("Lift to L2", new L2(intake, elevator));
 
-		// choosers (for auton)
-
-		autoChooser = AutoBuilder.buildAutoChooser("Auto Path 1");
-		SmartDashboard.putData("Auto Chooser", autoChooser);
+		// choosers (for auton with pathplanner)
+		//autoChooser = AutoBuilder.buildAutoChooser();
+        //SmartDashboard.putData("Auto Chooser", autoChooser);
 		
-		/*autonChooser.setDefaultOption("Do Nothing", AUTON_DO_NOTHING);
-		autonChooser.addOption("My Auto", AUTON_CUSTOM);
+		autonChooser.setDefaultOption("Do Nothing", AUTON_DO_NOTHING);
+		//autonChooser.addOption("My Auto", AUTON_CUSTOM);
 		autonChooser.addOption("Sample Swerve", AUTON_SAMPLE_SWERVE);
 		autonChooser.addOption("Sample Move Forward", AUTON_SAMPLE_MOVE_FORWARD);
 		autonChooser.addOption("Sample Move In Reverse", AUTON_SAMPLE_MOVE_IN_REVERSE);
 		autonChooser.addOption("Sample Move In Gamma Shape", AUTON_SAMPLE_MOVE_IN_GAMMA_SHAPE);
 		autonChooser.addOption("Sample Move In L Shape In Reverse", AUTON_SAMPLE_MOVE_IN_L_SHAPE_IN_REVERSE);
-		autonChooser.addOption("Test Hardcoded Move 1", AUTON_TEST_HARDCODED_MOVE_1);
-		autonChooser.addOption("Test Hardcoded Move 2", AUTON_TEST_HARDCODED_MOVE_2);
+		autonChooser.addOption("Align to Reef Tag Relative", AUTON_ALIGN_TO_REEF_TAG_RELATIVE);
+		autonChooser.addOption("LL Mid Score L1", AUTON_LL_MID_SCORE_L1);
+		autonChooser.addOption("Middle Position Score L1", AUTON_MID_SCORE_L1);
+		autonChooser.addOption("Left Side Move To Reef", AUTON_LEFT_MOVE_TO_REEF);
+		autonChooser.addOption("Right Side move To Reef", AUTON_RIGHT_MOVE_TO_REEF);
 		autonChooser.addOption("Test Trajectory Generation", AUTON_TEST_TRAJECTORY_GENERATION);
 		SmartDashboard.putData("Auto choices", autonChooser);
 
-		gamePieceChooser.setDefaultOption("None", GAME_PIECE_NONE);
-		gamePieceChooser.addOption("1 Note", GAME_PIECE_1_NOTE);
-		gamePieceChooser.addOption("2 Notes", GAME_PIECE_2_NOTES);
-		gamePieceChooser.addOption("3 Notes", GAME_PIECE_3_NOTES);
+		/*gamePieceChooser.setDefaultOption("None", GAME_PIECE_NONE);
+		gamePieceChooser.addOption("1 Note", GAME_PIECE_1_CORAL);
+		//gamePieceChooser.addOption("2 Notes", GAME_PIECE_2_CORALS);
+		//gamePieceChooser.addOption("3 Notes", GAME_PIECE_3_CORALS);
 		SmartDashboard.putData("Game piece choices", gamePieceChooser);
 
 		startPositionChooser.setDefaultOption("Starting Position 1", START_POSITION_1);
@@ -245,7 +266,7 @@ public class RobotContainer {
 		SmartDashboard.putData("Start positions", startPositionChooser);
 
 		mainTargetChooser.setDefaultOption("To Nowhere", MAIN_TARGET_NOWHERE);
-		mainTargetChooser.addOption("Speaker", MAIN_TARGET_SPEAKER);
+		mainTargetChooser.addOption("Reef", MAIN_TARGET_NOWHERE);
 		SmartDashboard.putData("Main targets", mainTargetChooser);
 		
 		cameraOptionChooser.setDefaultOption("Always", CAMERA_OPTION_USE_ALWAYS);
@@ -254,22 +275,22 @@ public class RobotContainer {
 		cameraOptionChooser.addOption("Never", CAMERA_OPTION_USE_NEVER);		
 		SmartDashboard.putData("Camera options", cameraOptionChooser);
 		
-		sonarOptionChooser.setDefaultOption("Always", SONAR_OPTION_USE_ALWAYS);
+		/*sonarOptionChooser.setDefaultOption("Always", SONAR_OPTION_USE_ALWAYS);
 		sonarOptionChooser.addOption("Release Only", SONAR_OPTION_USE_RELEASE_ONLY);
 		sonarOptionChooser.addOption("Grasp Only", SONAR_OPTION_USE_GRASP_ONLY);		
 		sonarOptionChooser.addOption("Never", SONAR_OPTION_USE_NEVER);
-		SmartDashboard.putData("Sonar options", sonarOptionChooser);
+		SmartDashboard.putData("Sonar options", sonarOptionChooser);*/
 		
-		releaseChooser.setDefaultOption("Release", CLAW_OPTION_RELEASE);
+		/*releaseChooser.setDefaultOption("Release", CLAW_OPTION_RELEASE);
 		releaseChooser.addOption("Don't release", CLAW_OPTION_DONT_RELEASE);
-		SmartDashboard.putData("Release options", releaseChooser);
+		SmartDashboard.putData("Release options", releaseChooser);/* */
 
-		autonOptionChooser.setDefaultOption("Just Shoot Note", AUTON_OPTION_JUST_SHOOT_NOTE);
-		autonOptionChooser.addOption("Leave Community", AUTON_OPTION_LEAVE_COMMUNITY);
-		autonOptionChooser.addOption("Pickup Note At Midline", AUTON_OPTION_PICKUP_NOTE_AT_MIDLINE);
-		autonOptionChooser.addOption("Pickup Note At Wing", AUTON_OPTION_PICKUP_NOTE_AT_WING);
-		autonOptionChooser.addOption("Feed Note", AUTON_OPTION_FEED_NOTE);
-		SmartDashboard.putData("Auton options", autonOptionChooser);*/
+		//autonOptionChooser.setDefaultOption("Just Shoot Note", AUTON_OPTION_JUST_PLACE_CORAL);
+		//autonOptionChooser.addOption("Leave Community", AUTON_OPTION_LEAVE_COMMUNITY);
+		//autonOptionChooser.addOption("Pickup Coral At Source", AUTON_OPTION_PICKUP_CORAL_AT_SOURCE);
+		//autonOptionChooser.addOption("Pickup Note At Wing", AUTON_OPTION_PICKUP_NOTE_AT_WING);
+		//autonOptionChooser.addOption("Feed Note", AUTON_OPTION_FEED_NOTE);
+		SmartDashboard.putData("Auton options", autonOptionChooser);
 		
 
 		// Configure the button bindings
@@ -277,7 +298,6 @@ public class RobotContainer {
 		configureButtonBindings();
 
 		// Configure default commands
-
 		drivetrain.setDefaultCommand(
 			// The left stick controls translation of the robot.
 			// Turning is controlled by the X axis of the right stick.
@@ -286,23 +306,19 @@ public class RobotContainer {
 			// We are also inverting RightX because we want a positive value when we pull to the left (CCW is positive in mathematics).
 			new RunCommand(
 				() -> drivetrain.drive(
-					-MathUtil.applyDeadband(joyMain.getY(), JOYSTICK_AXIS_THRESHOLD),
-					-MathUtil.applyDeadband(joyMain.getX(), JOYSTICK_AXIS_THRESHOLD),
-					-MathUtil.applyDeadband(joyMain.getZ(), JOYSTICK_AXIS_THRESHOLD),
+					-MathUtil.applyDeadband(driverGamepad.getLeftY(), GAMEPAD_AXIS_THRESHOLD),
+					-MathUtil.applyDeadband(driverGamepad.getLeftX(), GAMEPAD_AXIS_THRESHOLD),
+					-MathUtil.applyDeadband(driverGamepad.getRightX(), GAMEPAD_AXIS_THRESHOLD),
 					true, true),
 				drivetrain));
 
-		
-		//roller.setDefaultCommand(new RollerStopForever(roller)); // we stop by default
-
-		//shooter.setDefaultCommand(new ShooterStopForever(shooter)); // we stop by default
-
-		//compressor.checkCompressor(); //we compress in the background
 
 		indicator.setDefaultCommand(new IndicatorIndicateUsingCamera(indicator)); // default command, only runs when robot is enabled
 
-		indicatorTimedScrollRainbow = new IndicatorTimedScrollRainbow(indicator,1);
-		indicatorTimedScrollRainbow.schedule(); // we schedule the command as we are starting up
+	    // indicatorTimedScrollRainbow = new IndicatorTimedScrollRainbow(indicator,1);
+		//indicatorTimedScrollRainbow.schedule(); // we schedule the command as we are starting up
+	    indicatorBreatheRainbow = new IndicatorBreatheRainbow(indicator,1);
+	    indicatorBreatheRainbow.schedule(); // we schedule the command as we are starting up
 	}
 
 	/**
@@ -315,33 +331,42 @@ public class RobotContainer {
 	 * {@link JoystickButton}.
 	 */
 	private void configureButtonBindings() {
-
 		// driver (joystick)
 
-		joyMain.povUp()
+		driverGamepad.povUp()
 			.onTrue(new DrivetrainZeroHeading(drivetrain));	
 
-		joyMain.povDown()
+			driverGamepad.povDown()
 			.onTrue(new DrivetrainOppositeHeading(drivetrain));	
 
-		joyMain.povLeft()
+			driverGamepad.povLeft()
 			.onTrue(new DrivetrainLeftSubHeading(drivetrain));	
 
-		joyMain.povRight()
+			driverGamepad.povRight()
 			.onTrue(new DrivetrainRightSubHeading(drivetrain));
 
 		//joyMain.button(1)
 			//.whileTrue(new DrivetrainDriveUsingAprilTagCamera(drivetrain, apriltag_camera, getMainJoystick()));
-
-		joyMain.button(9)
-			.whileTrue(new DrivetrainSetXFormation(drivetrain));	
+			//driverGamepad.button(9)
+			//.whileTrue(new DrivetrainSetXFormation(drivetrain));	
 			//.whileTrue(new DrivetrainDriveUsingObjectDetectionCamera(drivetrain, object_detection_camera, getMainJoystick()));
-			
-		joyMain.button(10)
-			.onTrue(new MoveInLShapeInReverse(drivetrain, this, 3));
-			
-		joyMain.button(11)
-			.onTrue(new MoveInGammaShape(drivetrain, this, 3));
+			driverGamepad.button(2)
+			.onTrue(new AlignToReefTagRelative(false, drivetrain));
+
+
+			driverGamepad.button(4)
+			//.onTrue(new MoveInLShapeInReverse(drivetrain, this, 3));
+			//.whileTrue(new AimandRangewithLime(drivetrain));
+			//.onTrue(new IndicatorChase(indicator));
+			//.onTrue(new IndicatorBreatheRainbow(indicator,10));
+			.onTrue(new AlignToReefTagRelative(true, drivetrain));
+			//.onTrue(new DrivetrainDriveUsingLime(drivetrain, driverGamepad));
+			//.onTrue(new DrivetrainDriveTowardsAprilTagLime(drivetrain));
+
+
+
+			//driverGamepad.button(11)
+			//.onTrue(new MoveInGammaShape(drivetrain, this, 3));
 
 		//joyMain.button(5)
 			//.onTrue(new MoveForward(drivetrain, this, 3));
@@ -373,117 +398,78 @@ public class RobotContainer {
 		//joyMain.button(12)
 			//.whileTrue(new DrivetrainSetXFormation(drivetrain));
 			//.onTrue(new DrivetrainTurnUsingCamera(drivetrain, object_detection_camera));
-			//.onTrue(new IndicatorSetGreen(Indicator indicator));// Climber command
+			//.onTrue(new IndicatorSetGreen(Indicator indicator));
     	Command climbUpCommand =
-		new StartEndCommand(() -> climber.setMotorVoltage(1.5), () -> climber.stopMotor(), climber);
+		new StartEndCommand(() -> climber.setMotorVoltage(6), () -> climber.stopMotor(), climber);
 		Command climbDownCommand =
-		new StartEndCommand(() -> climber.setMotorVoltage(-4), () -> climber.stopMotor(), climber);
-		Command climbHoldCommand =
-		new StartEndCommand(
-		() -> climber.setMotorVoltage(-0.75), () -> climber.stopMotor(), climber);
+		new StartEndCommand(() -> climber.setMotorVoltage(-6), () -> climber.stopMotor(), climber);
+		//Command climbHoldCommand =
+		//new StartEndCommand(
+		//() -> climber.setMotorVoltage(-0.75), () -> climber.stopMotor(), climber);
 
-		joyMain.button(1).whileTrue(climbUpCommand);
-		joyMain.button(8).whileTrue(climbHoldCommand);
-		joyMain.button(2).whileTrue(climbDownCommand);
+		driverGamepad.button(1).whileTrue(climbUpCommand);
+		//driverGamepad.button(2).whileTrue(climbHoldCommand);
+		driverGamepad.button(3).whileTrue(climbDownCommand);
 
-	// Eject algae
-    	Command ejectAlgaeCommand =
-        new StartEndCommand(
-        () -> intake.setAlgaeVoltage(12), () -> intake.setAlgaeVoltage(0), intake);
-        joyMain.button(3).whileTrue(ejectAlgaeCommand);
+	// Algae
+		Command ejectAlgaeCommand = new EjectAlgaeCommand(algae);
+		driverGamepad.button(6).whileTrue(ejectAlgaeCommand);
 
-    	Command intakeAlgaeCommand =
-        new StartEndCommand(
-        () -> intake.setAlgaeVoltage(-12), () -> intake.setAlgaeVoltage(0), intake);
-        joyMain.button(4).whileTrue(intakeAlgaeCommand);
+		Command IntakeAlgaeUntilSensor = new AlgaeIntakeUntilSensor(algae, IntakeSensor);
+		driverGamepad.button(5).whileTrue(IntakeAlgaeUntilSensor);
 
     // Intake coral
-   		Command intakeCoralCommand =
-        new StartEndCommand(
-        () -> intake.setCoralIntakeVoltage(-6), () -> intake.setCoralIntakeVoltage(0), intake);
-    	joyMain.button(6).whileTrue(intakeCoralCommand);
 
-	Command ejectCoralCommand =
-    new StartEndCommand(
-     () -> intake.setCoralIntakeVoltage(6), () -> intake.setCoralIntakeVoltage(0), intake);
-	joyMain.button(5).whileTrue(ejectCoralCommand);
+	Command CoralIn = new CoralIn(coral);
+	driverGamepad.leftTrigger().whileTrue(CoralIn);
 
-	Command ejectCoralCommand2 =
-    new StartEndCommand(
-     () -> intake.setCoralIntakeVoltage(6), () -> intake.setCoralIntakeVoltage(0), intake);
-	 copilotGamepad.leftBumper().whileTrue(ejectCoralCommand2);
-
+	Command coralOutCommand = new CoralOut(coral);
+	driverGamepad.rightTrigger().whileTrue(coralOutCommand);
+		
+    //CoPilot Buttons//
     // Processor state
-    Command liftToProcessorCommand =
-        new RunCommand(() -> elevator.setPosition(PROCESSOR_HEIGHT), elevator);
-    Command wristToProcessorCommand =
-        new RunCommand(() -> intake.wristAngle(PROCESSOR_ANGLE), intake);
-    ParallelCommandGroup processorCommandGroup =
-        new ParallelCommandGroup(liftToProcessorCommand, wristToProcessorCommand);
-		copilotGamepad.povDown().onTrue(processorCommandGroup);
+	Command processorCommandGroup = new processorCommandGroup(coralwrist, elevator);
+	copilotGamepad.povDown().onTrue(processorCommandGroup);
+   
 	//Wrist stuff
-	Command WristUp =
-		new RunCommand(()->intake.wristAngle(L3_ANGLE), intake);
-		copilotGamepad.rightBumper().whileTrue(WristUp);
+	   Command Wristdown =
+		new RunCommand(()->coralwrist.wristAngle(L3_ANGLE), coralwrist);
+		copilotGamepad.rightBumper().whileTrue(Wristdown);
+
+		Command Wristup =
+		new RunCommand(()->coralwrist.wristAngle(PROCESSOR_ANGLE), coralwrist);
+		copilotGamepad.povRight().whileTrue(Wristup);
 	
 
     // Source state
-    Command liftToSourceCommand =
-        new RunCommand(() -> elevator.setPosition(SOURCE_HEIGHT), elevator);
-    Command wristToSourceCommand = new RunCommand(() -> intake.wristAngle(SOURCE_ANGLE), intake);
-    ParallelCommandGroup sourceCommandGroup =
-        new ParallelCommandGroup(liftToSourceCommand, wristToSourceCommand);
-		copilotGamepad.povLeft().onTrue(sourceCommandGroup);
+	Command sourceCommandGroup = new sourceCommandGroup(coralwrist, elevator);
+	copilotGamepad.povLeft().onTrue(sourceCommandGroup);
 
-    // L1 state
-    Command liftToL1Command = new RunCommand(() -> elevator.setPosition(L1_HEIGHT), elevator);
-    Command wristToL1Command = new RunCommand(() -> intake.wristAngle(L1_ANGLE), intake);
-    ParallelCommandGroup l1CommandGroup =
-        new ParallelCommandGroup(liftToL1Command, wristToL1Command);
-    copilotGamepad.a().onTrue(l1CommandGroup);
+	Command l1CommandGroup = new l1CommandGroup(coralwrist, elevator);
+	copilotGamepad.a().onTrue(l1CommandGroup);
 
-    // L2 state
-    Command liftToL2Command = new RunCommand(() -> elevator.setPosition(L2_HEIGHT), elevator);
-    Command wristToL2Command = new RunCommand(() -> intake.wristAngle(L2_ANGLE), intake);
-    ParallelCommandGroup l2CommandGroup =
-        new ParallelCommandGroup(liftToL2Command, wristToL2Command);
-		copilotGamepad.b().onTrue(l2CommandGroup);
+	Command l2CommandGroup = new l2CommandGroup(coralwrist, elevator);
+	copilotGamepad.b().onTrue(l2CommandGroup);
 
-    // L3 state
-    Command liftToL3Command = new RunCommand(() -> elevator.setPosition(L3_HEIGHT), elevator);
-    Command wristToL3Command = new RunCommand(() -> intake.wristAngle(L3_ANGLE), intake);
-    ParallelCommandGroup l3CommandGroup =
-        new ParallelCommandGroup(liftToL3Command, wristToL3Command);
-		copilotGamepad.y().onTrue(l3CommandGroup);
+	Command L3CommandGroup = new l3CommandGroup(coralwrist, elevator);
+	copilotGamepad.y().onTrue(L3CommandGroup);
 
-    // L4 state
-    Command liftToL4Command = new RunCommand(() -> elevator.setPosition(L4_HEIGHT), elevator);
-    Command wristToL4Command = new RunCommand(() -> intake.wristAngle(L4_ANGLE), intake);
-    ParallelCommandGroup l4CommandGroup =
-        new ParallelCommandGroup(liftToL4Command, wristToL4Command);
-		copilotGamepad.x().onTrue(l4CommandGroup);
+	Command L4CommandGroup = new l4CommandGroup(coralwrist, elevator);
+	copilotGamepad.x().onTrue(L4CommandGroup);
 
-    // Top algae state
-    Command liftToTopAlgaeCommand =
-        new RunCommand(() -> elevator.setPosition(TOP_ALGAE_HEIGHT), elevator);
-    Command wristToTopAlgaeCommand =
-        new RunCommand(() -> intake.wristAngle(TOP_ALGAE_ANGLE), intake);
-    ParallelCommandGroup topAlgaeCommandGroup =
-        new ParallelCommandGroup(liftToTopAlgaeCommand, wristToTopAlgaeCommand);
-		copilotGamepad.povUp().onTrue(topAlgaeCommandGroup);
+	Command TopAlgaeCommandGroup = new topAlgaeCommandGroup(coralwrist, elevator);
+	copilotGamepad.povUp().onTrue(TopAlgaeCommandGroup);
 
     // Manual lift
-   // Command manualLift =
-      //  new RunCommand(() -> elevator.setVoltage(-copilotGamepad.getLeftY() * 0.5), elevator);
-     //Command manualWrist =
-        // new RunCommand(() -> intake.setWristVoltage(joyMain(12)),intake);
-     //ParallelCommandGroup manualCommandGroup = new ParallelCommandGroup(manualLift, manualWrist);
-    //copilotGamepad.rightBumper().whileTrue(manualLift);
-	}
+   Command manualLift =
+        new RunCommand(() -> elevator.setVoltage(-copilotGamepad.getLeftY() * 0.5), elevator);
+    // Command manualWrist =
+    //     new RunCommand(() -> intake.setWristVoltage(operatorController.getRightY() * 0.25),
+    // intake);
+    // ParallelCommandGroup manualCommandGroup = new ParallelCommandGroup(manualLift, manualWrist);
+    copilotGamepad.start().whileTrue(manualLift);
 
-
-  
-
+	//Auto Commands Testing
 	
 		//copilotGamepad.x()
 		    //.onTrue(new CoralIntake());
@@ -586,7 +572,7 @@ public class RobotContainer {
 			//.whileTrue(new DrawerGamepadControl(drawer, getCopilotGamepad()));
 			//.onTrue(new NeckMoveSubWithStallDetection(neck));
 			
-	
+	}
 
 	/**
 	 * Use this to pass the autonomous command to the main {@link Robot} class.
@@ -594,15 +580,12 @@ public class RobotContainer {
 	 * @return the command to run in autonomous
 	 */
 	public Command getAutonomousCommand() {
-		return autoChooser.getSelected();
+		//return autoChooser.getSelected();
 
-		
-
-		
-		/*autonSelected = autonChooser.getSelected();
+		autonSelected = autonChooser.getSelected();
 		System.out.println("Auton selected: " + autonSelected);	
 
-		gamePieceSelected = gamePieceChooser.getSelected();
+		/*gamePieceSelected = gamePieceChooser.getSelected();
 		System.out.println("Game piece selected: " + gamePieceSelected);		
 
 		startPosition = startPositionChooser.getSelected();
@@ -614,17 +597,16 @@ public class RobotContainer {
 		cameraOption = cameraOptionChooser.getSelected();
 		System.out.println("Camera option: " + cameraOption);
 		
-		sonarOption = sonarOptionChooser.getSelected();
+		/*sonarOption = sonarOptionChooser.getSelected();
 		System.out.println("Sonar option: " + sonarOption);
 		
 		releaseSelected = releaseChooser.getSelected();
 		System.out.println("Release chosen: " + releaseSelected);
 
 		autonOption = autonOptionChooser.getSelected();
-		System.out.println("Auton option: " + autonOption);
-		
+		System.out.println("Auton option: " + autonOption);*/
 
-		switch (autonSelected) {
+	switch (autonSelected) {
 			case AUTON_SAMPLE_SWERVE:
 				//return createSwerveControllerCommand(createExampleTrajectory());
 				//return new DrivetrainSwerveRelative(drivetrain, this, createExampleTrajectory());
@@ -632,7 +614,7 @@ public class RobotContainer {
 				//break;
 
 			case AUTON_SAMPLE_MOVE_FORWARD:
-				return new MoveForward(drivetrain, this, 3);
+				return new MoveForward(drivetrain, this, 1.5);
 				//break;
 
 			case AUTON_SAMPLE_MOVE_IN_REVERSE:
@@ -646,21 +628,38 @@ public class RobotContainer {
 			case AUTON_SAMPLE_MOVE_IN_L_SHAPE_IN_REVERSE:
 				return new MoveInLShapeInReverse(drivetrain, this, 3);
 				//break;
+			case AUTON_ALIGN_TO_REEF_TAG_RELATIVE:
+				return new AutonAlign(drivetrain, elevator, this, coralwrist, coral);
+				//break;
 
 			case AUTON_TEST_HARDCODED_MOVE_1:
 				return new CompletelyLeaveCommunity(drivetrain, this);
 				//break;
+			case AUTON_LEFT_MOVE_TO_REEF:
+				return new CoralonL1fromLeft(drivetrain, elevator,this,coralwrist, coral);
+				//break;
 
-			/*case AUTON_TEST_HARDCODED_MOVE_2:
-				return new MoveInNonBumpKTurn(drivetrain, this);
+			case AUTON_RIGHT_MOVE_TO_REEF:
+				return new CoralonL1fromRight(drivetrain, elevator, this, coralwrist, coral);
+				//break;
+
+			//case AUTON_TEST_HARDCODED_MOVE_2:
+			case AUTON_MID_SCORE_L1:
+			return new CoralonL1(drivetrain,elevator, this, coralwrist, coral);
+			//break;
+				//break;*/
+
+			case AUTON_LL_MID_SCORE_L1:
+			return new MidCoralonL1(drivetrain, elevator, this, coralwrist, coral);
+			//break;
 				//break;
 
 			case AUTON_TEST_TRAJECTORY_GENERATION:
 				return new TrajectoryGenerationTest(drivetrain, this, object_detection_camera, apriltag_camera);
-				//break;
+				//break;*/
 
-			case AUTON_CUSTOM:
-				return new CustomAuton(gamePieceSelected, startPosition, mainTarget, cameraOption, sonarOption, autonOption, drivetrain, this, elevator, roller, neck, shooter, object_detection_camera, apriltag_camera, noteSensor, noteSensorTwo);
+			//case AUTON_CUSTOM:
+				//return new CustomAuton(gamePieceSelected, startPosition, mainTarget, autonOption, autonOption, autonOption, drivetrain, this, elevator, null, coral);
 				//break;
 
 			case AUTON_DO_NOTHING:
@@ -671,7 +670,8 @@ public class RobotContainer {
 				// nothing
 				return null;
 				//break;
-		}*/ // end switch
+		} // end switch
+
 	}
 
 	public TrajectoryConfig createFastTrajectoryConfig() {
@@ -740,7 +740,7 @@ public class RobotContainer {
 		return exampleTrajectory;
 	}
 	
-	public Command createSwerveControllerCommand(Trajectory trajectory) {
+	/*public Command createSwerveControllerCommand(Trajectory trajectory) {
 
 		ProfiledPIDController thetaController = new ProfiledPIDController(
 			AutoConstants.THETA_CONTROLLER_P, 0, 0, AutoConstants.THETA_CONTROLLER_CONSTRAINTS);
@@ -764,6 +764,37 @@ public class RobotContainer {
 
 		// Run path following command, then stop at the end.
 		return swerveControllerCommand.andThen(() -> drivetrain.drive(0, 0, 0, false, false));
+	}*/
+
+	/*public AlgaeSensor getAlgaeSensor()
+    {
+	return algaesensor;
+    }*/
+
+	public IntakeSensor getIntakeSensor() {
+		return IntakeSensor;
+	}
+
+	public Limelight getLimelight() {
+		return limelight;
+	}
+	
+	public Indicator getIndicator()
+	{
+		return indicator;
+	}
+	public CoralWrist getCoralWrist()
+	{
+		return coralwrist;
+	}
+
+	public Algae getAlgae()
+	{
+		return algae;
+	}
+	public Coral getCoral()
+	{
+		return coral;
 	}
 
 	public Field2d getField()
@@ -784,19 +815,11 @@ public class RobotContainer {
     {
 	return climber;
     }
-	public Intake getIntake()
-	{
-		return intake;
-	}
+	
 	public elevator getElevator()
 	{
 		return elevator;
 	}
-
-	/*public Wrist getWrist()
-	{
-		return wrist;
-	}*/
 
     public ICamera getObjectDetectionCamera()
 	{
@@ -808,9 +831,9 @@ public class RobotContainer {
 		return apriltag_camera;
 	}
 
-	public Joystick getMainJoystick()
+	public XboxController getdriverGamepad()
 	{
-		return joyMain.getHID();
+		return driverGamepad.getHID();
 	}
 
 	public XboxController getCopilotGamepad()
@@ -818,12 +841,12 @@ public class RobotContainer {
 		return copilotGamepad.getHID();
 	}
 
-	/*public SendableChooser<String> getAutonChooser()
+	public SendableChooser<String> getAutonChooser()
 	{
 		return autonChooser;
 	}
 	
-	public SendableChooser<String> getGamePieceChooser()
+	/*public SendableChooser<String> getGamePieceChooser()
 	{
 		return gamePieceChooser;
 	}
@@ -843,7 +866,7 @@ public class RobotContainer {
 		return cameraOptionChooser;
 	}
 
-	public SendableChooser<String> getSonarOptionChooser()
+	/*public SendableChooser<String> getSonarOptionChooser()
 	{
 		return sonarOptionChooser;
 	}
@@ -851,10 +874,10 @@ public class RobotContainer {
 	public SendableChooser<String> getReleaseChooser()
 	{
 		return releaseChooser;
-	}
+	}*/
 
 	public SendableChooser<String> getAutonOptionChooser()
 	{
 		return autonOptionChooser;
-	}*/
+	}
 }

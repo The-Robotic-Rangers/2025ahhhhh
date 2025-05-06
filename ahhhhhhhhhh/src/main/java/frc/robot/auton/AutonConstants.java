@@ -10,7 +10,7 @@ public class AutonConstants {
 	public static final double TWO_METER = 2;
 
 	// All Starting Position Distances
-	public static final double DISTANCE_TO_PICKUP_NOTE_METERS = .5; // todo fix
+	//public static final double DISTANCE_TO_PICKUP_NOTE_METERS = .5; // todo fix
 	public static final double DISTANCE_FROM_STARTING_POSITION_TO_LEAVE_COMMUNITY_METERS = 5; // todo fix
 
 	// Starting Position One = Three Note Distances (all in meters prob)

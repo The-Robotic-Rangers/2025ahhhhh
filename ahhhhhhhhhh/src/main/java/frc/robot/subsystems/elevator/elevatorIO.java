@@ -1,5 +1,4 @@
 package frc.robot.subsystems.elevator;
-
 import org.littletonrobotics.junction.AutoLog;
 
 public interface elevatorIO {
@@ -29,5 +28,9 @@ public interface elevatorIO {
   // Resets the encoder position to a specific value
   public default void resetPosition() {}
 
+
   public default void stop() {}
+
+  public default void periodic() {}
+  
 }
