@@ -350,11 +350,11 @@ public class RobotContainer {
 			//driverGamepad.button(9)
 			//.whileTrue(new DrivetrainSetXFormation(drivetrain));	
 			//.whileTrue(new DrivetrainDriveUsingObjectDetectionCamera(drivetrain, object_detection_camera, getMainJoystick()));
-			driverGamepad.button(2)
+			driverGamepad.button(4)
 			.onTrue(new AlignToReefTagRelative(false, drivetrain));
 
 
-			driverGamepad.button(4)
+			driverGamepad.button(2)
 			//.onTrue(new MoveInLShapeInReverse(drivetrain, this, 3));
 			//.whileTrue(new AimandRangewithLime(drivetrain));
 			//.onTrue(new IndicatorChase(indicator));

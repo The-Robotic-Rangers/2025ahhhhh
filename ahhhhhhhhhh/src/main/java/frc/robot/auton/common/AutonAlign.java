@@ -21,15 +21,15 @@ public class AutonAlign extends SequentialCommandGroup {
     public AutonAlign(SwerveDrivetrain drivetrain, elevator elevator, RobotContainer container, CoralWrist coralWrist, Coral coral ) {
     addCommands(  
         new SequentialCommandGroup(
-        new AlignToReefTagRelative(false, drivetrain).withTimeout(1.5),
-        new WaitCommand(3)),
-        new l3CommandGroup(coralWrist, elevator).withTimeout(.5), 
-        new WaitCommand(.5),
-        new CoralOut(coral).withTimeout(.5),
-        new WaitCommand(.5),
-        //new CoralStop(coral),
-        new MoveForward(drivetrain, container, .3).withTimeout(1.2),
-        new processorCommandGroup(coralWrist, elevator).withTimeout(.5)
+            new AlignToReefTagRelative(false, drivetrain).withTimeout(1.5),
+            new WaitCommand(3)),
+            new l3CommandGroup(coralWrist, elevator).withTimeout(.5), 
+            new WaitCommand(.5),
+            new CoralOut(coral).withTimeout(.5),
+            new WaitCommand(.5),
+            //new CoralStop(coral),
+            new MoveForward(drivetrain, container, .3).withTimeout(1.2),
+            new processorCommandGroup(coralWrist, elevator).withTimeout(.5)
     );
     
         }

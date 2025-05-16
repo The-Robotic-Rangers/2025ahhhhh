@@ -17,7 +17,7 @@ public class MidCoralonL1 extends SequentialCommandGroup {
     public MidCoralonL1 (SwerveDrivetrain drivetrain,elevator elevator,RobotContainer container, CoralWrist coralWrist, Coral coral) {
       addCommands(  
           new SequentialCommandGroup(
-                new AlignToReefTagRelative(true, drivetrain).withTimeout(3),
+                new AlignToReefTagRelative(false, drivetrain).withTimeout(3),
                 new WaitCommand(3),
                 new MoveForward(drivetrain, container,2.3),
                 new WaitCommand(.5),
